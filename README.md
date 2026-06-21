@@ -1,20 +1,11 @@
 # su26-ai301-contribution
-# Contribution 1: TBD - Issue Not Selected Yet
-
-**Contribution Number:** 1
-**Student:** Rishav Mishra
-**GitHub Username:** tokito-99
-**Issue:** TBD
-**Status:** Phase I - In Progress
-
----
 
 ## Practice Contribution Completed
 
 Before selecting my main AI301 issue, I completed a practice contribution using the `firstcontributions/first-contributions` repository.
 
-**Practice Repository:** https://github.com/firstcontributions/first-contributions
-**My Fork:** https://github.com/tokito-99/first-contributions
+**Practice Repository:** https://github.com/firstcontributions/first-contributions  
+**My Fork:** https://github.com/tokito-99/first-contributions  
 **Practice Pull Request:** https://github.com/firstcontributions/first-contributions/pull/118779
 
 For this practice contribution, I forked the repository, cloned it locally in VS Code, created a new branch, edited `Contributors.md`, committed my change, pushed the branch to GitHub, and opened a pull request. This helped me practice the standard open source workflow before working on my main AI301 contribution.
@@ -23,10 +14,11 @@ For this practice contribution, I forked the repository, cloned it locally in VS
 
 # Contribution 1: Expose Window Function Selection in `smooth_taubin`
 
-**Contribution Number:** 1
-**Student:** Rishav Mishra
-**Issue:** https://github.com/pyvista/pyvista/issues/8695
-**Status:** Phase II Complete
+**Contribution Number:** 1  
+**Student:** Rishav Mishra  
+**GitHub Username:** tokito-99  
+**Issue:** https://github.com/pyvista/pyvista/issues/8695  
+**Status:** Phase III - Week 3 Build Progress Complete  
 
 ---
 
@@ -72,7 +64,7 @@ The selected string should map to the corresponding VTK method, such as `SetWind
 
 ### Current Behavior
 
-Calling `smooth_taubin()` with a `window_function` keyword currently fails because the method does not accept that parameter.
+Before my implementation, calling `smooth_taubin()` with a `window_function` keyword failed because the method did not accept that parameter.
 
 Example:
 
@@ -80,7 +72,7 @@ Example:
 mesh.smooth_taubin(window_function="nuttall")
 ```
 
-Current result:
+Observed result before the fix:
 
 ```text
 TypeError: smooth_taubin() got an unexpected keyword argument 'window_function'
@@ -177,7 +169,7 @@ python -c "import pyvista as pv, inspect; mesh=pv.Sphere(); print(inspect.signat
 python -c "import pyvista as pv; mesh=pv.Sphere(); mesh.smooth_taubin(window_function='nuttall')"
 ```
 
-5. Observed result:
+5. Observed result before implementation:
 
 ```text
 TypeError: smooth_taubin() got an unexpected keyword argument 'window_function'
@@ -190,8 +182,8 @@ The method should accept a valid window-function argument and apply the correspo
 ### Reproduction Evidence
 
 * **Working branch:** https://github.com/tokito-99/pyvista/tree/feat/smooth-taubin-window-function
-* **Screenshots/logs:** Local PowerShell output confirms that PyVista installed successfully, imports as `0.49.dev0`, and that `smooth_taubin()` is located in `pyvista/core/filters/poly_data.py`.
-* **My findings:** The issue is reproducible because the requested `window_function` keyword is not currently part of the `smooth_taubin()` API.
+* **Screenshots/logs:** Local PowerShell output confirmed that PyVista installed successfully, imports as `0.49.dev0`, and that `smooth_taubin()` is located in `pyvista/core/filters/poly_data.py`.
+* **My findings:** The issue was reproducible because the requested `window_function` keyword was not part of the `smooth_taubin()` API before implementation.
 
 ---
 
@@ -199,7 +191,7 @@ The method should accept a valid window-function argument and apply the correspo
 
 ### Analysis
 
-The root cause is that PyVista's `smooth_taubin()` method uses VTK's `vtkWindowedSincPolyDataFilter`, but only exposes some of that filter's options. The VTK filter supports selecting different window functions, but PyVista currently does not provide a user-facing argument to control that selection.
+The root cause is that PyVista's `smooth_taubin()` method uses VTK's `vtkWindowedSincPolyDataFilter`, but only exposes some of that filter's options. The VTK filter supports selecting different window functions, but PyVista did not provide a user-facing argument to control that selection.
 
 The issue reporter's workaround directly calls:
 
@@ -207,34 +199,41 @@ The issue reporter's workaround directly calls:
 alg.SetWindowFunctionToNuttall()
 ```
 
-inside a copied version of the current PyVista implementation. A better PyVista solution would avoid hard-coding Nuttall and instead expose a validated `window_function` argument so users can choose among supported VTK options.
+inside a copied version of the current PyVista implementation. A better PyVista solution avoids hard-coding Nuttall and instead exposes a validated `window_function` argument so users can choose among supported VTK options.
 
 ### Proposed Solution
 
-I plan to add a new optional `window_function` argument to `smooth_taubin()`.
+I implemented a new optional `window_function` argument in `smooth_taubin()`.
 
-The default behavior should remain unchanged when `window_function` is not provided. When the argument is provided, PyVista should validate the string and call the correct VTK setter method.
+The default behavior remains unchanged when `window_function` is not provided. When the argument is provided, PyVista validates the string and calls the correct VTK setter method.
 
-Possible accepted values:
+Supported values implemented:
 
 ```text
-"nuttall"
 "blackman"
-"hanning"
 "hamming"
+"hanning"
+"nuttall"
 ```
 
-The final set of accepted values should match the VTK methods available in the installed VTK version and PyVista's API style.
+The user-facing values map to the VTK methods available in my local VTK installation:
+
+* `blackman` -> `SetWindowFunctionToBlackman`
+* `hamming` -> `SetWindowFunctionToHamming`
+* `hanning` -> `SetWindowFunctionoHanning`
+* `nuttall` -> `SetWindowFunctionToNuttall`
+
+One important implementation detail is that VTK exposes the Hanning setter as `SetWindowFunctionoHanning`, so I verified the exact method name locally before implementing the mapping.
 
 ### Implementation Plan
 
 Using UMPIRE framework adapted:
 
-**Understand:**
+**Understand:**  
 `smooth_taubin()` should expose VTK window-function selection because users currently cannot choose a window function through PyVista, even though the underlying VTK filter supports it.
 
-**Match:**
-I will look for existing PyVista patterns for:
+**Match:**  
+I looked for existing PyVista patterns for:
 
 * optional string arguments
 * input validation
@@ -249,28 +248,28 @@ I will look for existing PyVista patterns for:
 3. Keep the default behavior unchanged when `window_function=None`.
 4. Add validation for supported string values.
 5. Map valid values to the corresponding VTK methods.
-6. Update the `smooth_taubin()` docstring with the new parameter and a short explanation.
+6. Update the `smooth_taubin()` docstring with the new parameter and accepted values.
 7. Add tests for valid window-function values.
 8. Add a test for invalid window-function input.
 9. Run the relevant tests before opening a PR.
 
-**Implement:**
-Implementation will happen in Phase III on this branch:
+**Implement:**  
+Implementation is happening in Phase III on this branch:
 
 ```text
 https://github.com/tokito-99/pyvista/tree/feat/smooth-taubin-window-function
 ```
 
-**Review:**
-I will self-review the change against PyVista's contribution guidelines, especially API style, docstring style, validation style, and test expectations.
+**Review:**  
+I self-reviewed the change against PyVista's contribution expectations by checking that the change is scoped, the commits are atomic, the tests are targeted, and the diff only touches relevant files.
 
-**Evaluate:**
-I will verify the fix by:
+**Evaluate:**  
+I verified the fix by:
 
-* confirming `mesh.smooth_taubin(window_function="nuttall")` no longer raises an unexpected keyword argument error
-* confirming invalid values raise a clear error
-* running existing and new tests related to `smooth_taubin()`
-* checking that existing default behavior is unchanged when `window_function` is not provided
+* confirming the implementation accepts valid `window_function` values,
+* confirming invalid values raise a clear `ValueError`,
+* running existing and new tests related to `smooth_taubin()`,
+* checking that existing/default `smooth_taubin()` behavior still works when `window_function` is not provided.
 
 ---
 
@@ -278,29 +277,39 @@ I will verify the fix by:
 
 ### Unit Tests
 
-* [ ] Test that `smooth_taubin(window_function="nuttall")` runs without raising an unexpected keyword argument error.
-* [ ] Test other supported window-function strings if supported by the installed VTK version.
-* [ ] Test that an invalid `window_function` value raises a clear validation error.
-* [ ] Test that the default behavior still works when `window_function` is not provided.
+* [x] Test that `smooth_taubin(window_function="nuttall")` runs without raising an unexpected keyword argument error.
+* [x] Test all supported window-function strings:
+  * `blackman`
+  * `hamming`
+  * `hanning`
+  * `nuttall`
+* [x] Test that an invalid `window_function` value raises a clear `ValueError`.
+* [x] Test that the existing/default `smooth_taubin()` behavior still works when `window_function` is not provided.
 
 ### Integration Tests
 
-* [ ] Run the existing test file that contains `smooth_taubin()` tests.
-* [ ] Run relevant PyVista core filter tests to confirm the new argument does not break existing filter behavior.
+* [x] Ran the existing PyVista test file that contains `smooth_taubin()` tests.
+* [x] Confirmed the existing `smooth_taubin()` test still passes along with the new tests.
 
-### Manual Testing
+### Manual and Targeted Testing
 
-Manual test command planned after implementation:
+I ran the targeted PyVista test command:
 
 ```powershell
-python -c "import pyvista as pv; mesh=pv.Sphere(); smoothed=mesh.smooth_taubin(window_function='nuttall'); print(smoothed.n_points)"
+python -m pytest tests/core/test_dataset_filters.py -k smooth_taubin
 ```
 
-Expected result after implementation:
+Final result:
 
 ```text
-The command should complete successfully and print the number of points in the smoothed mesh.
+6 passed, 776 deselected
 ```
+
+This confirms that the existing `smooth_taubin()` behavior still passes and that the new `window_function` tests pass.
+
+### Testing Challenge Resolved
+
+My first version of the new tests used `extract_geometry()`, but PyVista treats `extract_geometry()` as deprecated and the test failed. I updated the tests to use `extract_surface(algorithm=None)` instead, reran the targeted tests, and confirmed that all selected `smooth_taubin` tests passed.
 
 ---
 
@@ -314,11 +323,68 @@ I originally selected PyVista #8428, which proposed inline terminal rendering fo
 
 I selected PyVista #8695 as the new contribution issue. I forked PyVista, cloned the fork locally, added the upstream remote, created a working branch, created a virtual environment, installed PyVista in editable mode, verified the local development version, and located the relevant `smooth_taubin()` implementation.
 
+### Week 3 Progress
+
+**What I built:**
+
+* Implemented the core fix for PyVista issue #8695.
+* Added a new optional `window_function` argument to `smooth_taubin()` in `pyvista/core/filters/poly_data.py`.
+* Preserved the existing default behavior when `window_function` is not provided.
+* Added validation for supported window-function values.
+* Mapped the supported user-facing string values to the corresponding VTK setter methods:
+  * `blackman` -> `SetWindowFunctionToBlackman`
+  * `hamming` -> `SetWindowFunctionToHamming`
+  * `hanning` -> `SetWindowFunctionoHanning`
+  * `nuttall` -> `SetWindowFunctionToNuttall`
+* Added tests for valid and invalid `window_function` inputs in the existing PyVista test file.
+* Updated the `smooth_taubin()` docstring to document the new parameter and accepted values.
+
+**How I confirmed the changes were scoped and atomic:**
+
+* I split the work into three separate commits instead of one large commit:
+  * `e5792355a` — Add window_function option to smooth_taubin
+  * `201a2b757` — Test smooth_taubin window_function handling
+  * `bf0413732` — Document smooth_taubin window_function
+* I ran `git log --oneline upstream/main..HEAD` to confirm the branch contains only these three focused commits.
+* I ran `git diff --stat upstream/main...HEAD` to confirm that only two relevant files changed.
+* The final diff showed:
+  * `pyvista/core/filters/poly_data.py` — 24 insertions
+  * `tests/core/test_dataset_filters.py` — 16 insertions
+  * Total: 2 files changed, 40 insertions
+* I ran `git diff upstream/main...HEAD` to inspect the actual code changes and confirm there were no unrelated files, debug prints, or broad refactors.
+
+**Testing performed:**
+
+```powershell
+python -m pytest tests/core/test_dataset_filters.py -k smooth_taubin
+```
+
+Result:
+
+```text
+6 passed, 776 deselected
+```
+
+**Branch:**
+
+https://github.com/tokito-99/pyvista/tree/feat/smooth-taubin-window-function
+
 ### Code Changes
 
-* **Files modified:** No implementation files modified yet.
-* **Key commits:** TBD in Phase III.
-* **Approach decisions:** I plan to expose a general `window_function` argument instead of hard-coding only the Nuttall window function. This should make the fix more flexible while keeping the default behavior unchanged.
+* **Files modified:**
+  * `pyvista/core/filters/poly_data.py`
+  * `tests/core/test_dataset_filters.py`
+
+* **Key commits:**
+  * `e5792355a` — Add window_function option to smooth_taubin
+  * `201a2b757` — Test smooth_taubin window_function handling
+  * `bf0413732` — Document smooth_taubin window_function
+
+* **Approach decisions:**
+  * I exposed a general `window_function` argument instead of hard-coding only the Nuttall window function.
+  * I kept the default behavior unchanged when `window_function` is not provided.
+  * I added validation so unsupported values raise a clear `ValueError`.
+  * I kept the change scoped to the smoothing filter implementation and its existing test file.
 
 ---
 
@@ -343,13 +409,19 @@ I selected PyVista #8695 as the new contribution issue. I forked PyVista, cloned
 
 I learned how to set up a large scientific Python project locally using a fork, upstream remote, virtual environment, and editable installation. I also practiced tracing an issue from a GitHub feature request to a specific function in the codebase.
 
+During Week 3, I gained more experience working inside a mature scientific Python codebase. I practiced making a small API extension, validating user-facing string input, mapping PyVista-level options to underlying VTK methods, writing targeted tests in an existing test file, and keeping implementation, tests, and documentation in separate atomic commits.
+
 ### Challenges Overcome
 
 The first PyVista issue I selected was not ideal after maintainer feedback because the feature had mostly been implemented in a related project. I pivoted to a more focused issue while staying within the PyVista ecosystem. During setup, I also resolved an installation interruption caused by canceling the VTK dependency download.
 
+During Week 3, my first test version used `extract_geometry()`, but PyVista treated that as deprecated and the test run failed. I corrected the tests to use `extract_surface(algorithm=None)` instead. I also had to verify the exact VTK method names locally because the Hanning method is exposed as `SetWindowFunctionoHanning`.
+
 ### What I'd Do Differently Next Time
 
 I would wait for maintainer feedback before fully committing to an issue in my README. I would also create a virtual environment before installing dependencies to avoid installing packages into the global/user Python environment.
+
+For future implementation phases, I would also check for deprecated helper methods before using them in new tests, and I would inspect nearby tests more carefully before adding new test cases.
 
 ---
 
@@ -360,4 +432,3 @@ I would wait for maintainer feedback before fully committing to an issue in my R
 * https://github.com/pyvista/pyvista
 * https://github.com/pyvista/pyvista/blob/main/CONTRIBUTING.rst
 * https://github.com/tokito-99/pyvista/tree/feat/smooth-taubin-window-function
-
