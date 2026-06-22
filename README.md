@@ -18,7 +18,7 @@ For this practice contribution, I forked the repository, cloned it locally in VS
 **Student:** Rishav Mishra  
 **GitHub Username:** tokito-99  
 **Issue:** https://github.com/pyvista/pyvista/issues/8695  
-**Status:** Phase III - Week 3 Build Progress Complete  
+**Status:** Phase IV Complete - Pull Request Submitted; Awaiting Review  
 
 ---
 
@@ -302,10 +302,10 @@ python -m pytest tests/core/test_dataset_filters.py -k smooth_taubin
 Final result:
 
 ```text
-6 passed, 776 deselected
+6 passed, 1 skipped, 777 deselected
 ```
 
-This confirms that the existing `smooth_taubin()` behavior still passes and that the new `window_function` tests pass.
+This confirms that the existing `smooth_taubin()` behavior still passes, the new `window_function` tests pass, and the older-VTK compatibility test is skipped as expected on VTK 9.6.2.
 
 ### Testing Challenge Resolved
 
@@ -341,16 +341,16 @@ I selected PyVista #8695 as the new contribution issue. I forked PyVista, cloned
 
 **How I confirmed the changes were scoped and atomic:**
 
-* I split the work into three separate commits instead of one large commit:
-  * `e5792355a` — Add window_function option to smooth_taubin
-  * `201a2b757` — Test smooth_taubin window_function handling
-  * `bf0413732` — Document smooth_taubin window_function
-* I ran `git log --oneline upstream/main..HEAD` to confirm the branch contains only these three focused commits.
+* I split the initial implementation into three separate commits instead of one large commit:
+  * `b7c8257ff` - Add window_function option to smooth_taubin
+  * `72f221fb4` - Test smooth_taubin window_function handling
+  * `8da4af8fa` - Document smooth_taubin window_function
+* I ran `git log --oneline upstream/main..HEAD` to confirm the branch contains only focused commits.
 * I ran `git diff --stat upstream/main...HEAD` to confirm that only two relevant files changed.
-* The final diff showed:
-  * `pyvista/core/filters/poly_data.py` — 24 insertions
-  * `tests/core/test_dataset_filters.py` — 16 insertions
-  * Total: 2 files changed, 40 insertions
+* After the Week 4 compatibility update, the final diff showed:
+  * `pyvista/core/filters/poly_data.py` - 29 insertions
+  * `tests/core/test_dataset_filters.py` - 25 insertions
+  * Total: 2 files changed, 54 insertions
 * I ran `git diff upstream/main...HEAD` to inspect the actual code changes and confirm there were no unrelated files, debug prints, or broad refactors.
 
 **Testing performed:**
@@ -362,12 +362,34 @@ python -m pytest tests/core/test_dataset_filters.py -k smooth_taubin
 Result:
 
 ```text
-6 passed, 776 deselected
+6 passed, 1 skipped, 777 deselected
 ```
 
 **Branch:**
 
 https://github.com/tokito-99/pyvista/tree/feat/smooth-taubin-window-function
+
+### Week 4 Progress
+
+**Pre-submission review and compatibility work:**
+
+* Audited the implementation against PyVista's supported VTK test matrix before opening a pull request.
+* Found that VTK's window-function setter methods are available in VTK 9.4.0 and later, while PyVista also tests older VTK versions.
+* Added an explicit `VTKVersionError` for users who request `window_function` with VTK older than 9.4.0.
+* Added test markers for VTK 9.4 or newer and a separate test for the older-VTK error path.
+* Updated the docstring to state that window-function selection requires VTK 9.4.0 or later.
+* Added a fourth focused compatibility commit:
+  * `fb6681903` - Handle smooth_taubin window functions on older VTK
+* Tested the focused `smooth_taubin` cases with multiple VTK versions:
+  * VTK 9.3.1: 2 passed, 5 skipped.
+  * VTK 9.4.2: 6 passed, 1 skipped.
+  * VTK 9.6.2: 6 passed, 1 skipped.
+* Ran scoped pre-commit checks, including codespell, docstring validation, Ruff formatting, and Ruff linting. All applicable checks passed.
+* Rebased the branch onto the latest `upstream/main`, reran the focused tests and pre-commit checks, and safely updated the remote feature branch with `--force-with-lease`.
+
+**Current Week 4 status:**
+
+Pull request [pyvista/pyvista#8779](https://github.com/pyvista/pyvista/pull/8779) has been submitted to merge the feature branch into PyVista's `main` branch. The PR is open and awaiting maintainer review. Its GitHub Actions workflows are also awaiting approval from a PyVista maintainer because the contribution comes from a fork.
 
 ### Code Changes
 
@@ -376,9 +398,10 @@ https://github.com/tokito-99/pyvista/tree/feat/smooth-taubin-window-function
   * `tests/core/test_dataset_filters.py`
 
 * **Key commits:**
-  * `e5792355a` — Add window_function option to smooth_taubin
-  * `201a2b757` — Test smooth_taubin window_function handling
-  * `bf0413732` — Document smooth_taubin window_function
+  * `b7c8257ff` - Add window_function option to smooth_taubin
+  * `72f221fb4` - Test smooth_taubin window_function handling
+  * `8da4af8fa` - Document smooth_taubin window_function
+  * `fb6681903` - Handle smooth_taubin window functions on older VTK
 
 * **Approach decisions:**
   * I exposed a general `window_function` argument instead of hard-coding only the Nuttall window function.
@@ -390,16 +413,19 @@ https://github.com/tokito-99/pyvista/tree/feat/smooth-taubin-window-function
 
 ## Pull Request
 
-**PR Link:** TBD
+**PR Link:** [pyvista/pyvista#8779](https://github.com/pyvista/pyvista/pull/8779)
 
-**PR Description:** TBD
+**PR Description:** Exposes VTK window-function selection through PyVista's `smooth_taubin()` API. The change supports Blackman, Hamming, Hanning, and Nuttall window functions, validates invalid input, preserves existing default behavior, and provides a clear compatibility error when VTK is older than 9.4.0.
 
 **Maintainer Feedback:**
 
 * Maintainer feedback on original issue #8428 indicated that the terminal rendering feature was mostly implemented in `pyvista-tui`, so I selected a new PyVista issue for this contribution.
-* Awaiting/monitoring feedback on #8695 before opening a PR.
+* On issue #8695, maintainer `@akaszynski` confirmed that the issue was still available and invited the contribution.
+* Pull request #8779 was submitted on June 22, 2026. No review feedback has been received yet, and the PR is awaiting maintainer review and workflow approval.
 
-**Status:** Not submitted yet
+**Status:** Awaiting review
+
+**Phase IV Status:** Complete - pull request submitted
 
 ---
 
