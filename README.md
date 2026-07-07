@@ -1,5 +1,122 @@
 # su26-ai301-contribution
 
+# Contribution 2: Vectorize `LookupTable.__call__` Array Mapping
+
+**Contribution Number:** 2  
+**Student:** Rishav Mishra  
+**GitHub Username:** tokito-99  
+**Issue:** https://github.com/pyvista/pyvista/issues/8770  
+**Status:** Week 6 In Progress - Implementation and Local Validation  
+
+---
+
+## Week 6 Progress
+
+My first PyVista pull request was merged into `main`:
+[pyvista/pyvista#8779](https://github.com/pyvista/pyvista/pull/8779).
+That PR exposed VTK window-function selection through PyVista's
+`smooth_taubin()` API and completed my first PyVista contribution cycle.
+
+For my second contribution, I reached out on PyVista issue
+[pyvista/pyvista#8770](https://github.com/pyvista/pyvista/issues/8770).
+The maintainer confirmed that I could work on the issue, so I started a fresh
+feature branch from the latest `upstream/main`.
+
+---
+
+## Issue Selection Update
+
+The second issue focuses on performance in `LookupTable.__call__`. This method
+is used when PyVista needs a fixed RGBA array instead of letting the GPU map
+scalars directly. The issue affects paths such as `Mapper.as_rgba()`,
+`style="points_gaussian"`, `render_points_as_spheres`, and other cases that do
+not use the plain mapper color mode.
+
+---
+
+## Why I Chose This Issue
+
+I chose this issue because it is a focused performance improvement in PyVista's
+plotting pipeline. It is also a good follow-up to my first contribution because
+it requires understanding how PyVista wraps VTK APIs while keeping the Python
+API behavior stable.
+
+The issue is specific, measurable, and testable. The existing implementation is
+correct but inefficient for large scalar arrays, and the maintainer provided a
+clear direction: use VTK's array-based scalar mapping instead of mapping each
+value individually in Python.
+
+---
+
+## Understanding the Issue
+
+### Problem Description
+
+`LookupTable.__call__` currently handles array-like input by looping over each
+value in Python:
+
+```python
+np.array([self.map_value(item) for item in value])
+```
+
+Each `map_value()` call then calls into VTK through `GetColor()` and
+`GetOpacity()`. For large point clouds, this can create millions of
+Python-to-C++ calls before rendering even reaches the GPU.
+
+### Expected Behavior
+
+Array-like scalar input should be mapped through VTK's bulk array mapping API
+instead of a Python loop. The scalar branch should remain unchanged:
+
+```python
+if isinstance(value, (int, float)):
+    return self.map_value(value)
+```
+
+For array input, the intended implementation is to convert the values to a VTK
+array, map all scalars at once with `MapScalars()`, convert the result back to a
+NumPy array, and return RGBA values in the same floating-point format as before:
+
+```python
+vtk_values = convert_array(value)
+rgba = convert_array(self.MapScalars(vtk_values, 0, -1))
+return rgba.reshape(-1, 4) / 255.0
+```
+
+This follows the VTK documentation for `vtkScalarsToColors` and
+`vtkLookupTable`, where `MapScalars()` maps an entire data array into an
+unsigned-char RGBA array.
+
+### Current Behavior
+
+Before this change, array inputs were mapped one value at a time in Python.
+This produced correct colors, but it was very slow for large scalar arrays.
+
+The issue report showed an example where a 2-million-point cloud took about
+5.4 seconds in the `points_gaussian` path because `LookupTable.__call__` mapped
+the scalar array with the per-value loop.
+
+### Affected Components
+
+Likely affected files/components:
+
+* `pyvista/plotting/lookup_table.py`
+* The `LookupTable.__call__()` method
+* `Mapper.as_rgba()` call paths that need fixed RGBA arrays
+* Plotting cases such as `style="points_gaussian"` and
+  `render_points_as_spheres`
+* Existing tests in `tests/plotting/test_lookup_table.py`
+
+### Initial Local Validation
+
+Initial local validation showed that the vectorized path matched the previous
+per-value mapping behavior for RGBA output. On a 2-million-value local
+benchmark, the vectorized path took about 18 ms compared with about 7310 ms for
+the old per-value loop, which is roughly a 403x speedup in my local
+environment.
+
+---
+
 ## Practice Contribution Completed
 
 Before selecting my main AI301 issue, I completed a practice contribution using the `firstcontributions/first-contributions` repository.
