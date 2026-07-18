@@ -6,7 +6,50 @@
 **Student:** Rishav Mishra  
 **GitHub Username:** tokito-99  
 **Issue:** https://github.com/pyvista/pyvista/issues/8770  
-**Status:** Week 6 In Progress - Implementation and Local Validation  
+**Status:** Week 7 Complete - Pull Request Submitted  
+
+---
+
+## Week 7 Progress
+
+I completed the pull request / merge request step for my second PyVista
+contribution by submitting [pyvista/pyvista#8818](https://github.com/pyvista/pyvista/pull/8818).
+This PR resolves [pyvista/pyvista#8770](https://github.com/pyvista/pyvista/issues/8770).
+
+The PR updates `LookupTable.__call__` to use VTK's bulk `MapScalars()` API for
+array-like inputs instead of mapping each scalar one at a time in Python. This
+preserves the scalar-input behavior while improving the RGBA array path used by
+`Mapper.as_rgba()` and plotting styles such as `points_gaussian`.
+
+**Implementation completed:**
+
+* Kept the scalar `LookupTable.__call__` branch using `map_value()` so existing
+  scalar behavior remains unchanged.
+* Replaced the array-input Python loop with VTK's vectorized `MapScalars()`
+  path.
+* Converted the VTK unsigned-char RGBA output back to PyVista's existing
+  floating-point RGBA format.
+* Preserved the existing public `TypeError` behavior for invalid input.
+* Added tests for scalar input, list input, NumPy array input, output shape, and
+  equivalence with `map_value()`.
+
+**Testing performed:**
+
+```powershell
+python -m pytest tests/plotting/test_lookup_table.py
+python -m pre_commit run --files pyvista/plotting/lookup_table.py tests/plotting/test_lookup_table.py
+```
+
+**Local benchmark:**
+
+On a local benchmark with 2,000,000 values, the vectorized path took about
+18 ms compared with about 7310 ms for the previous per-value Python loop. The
+output matched the previous mapping behavior at RGBA byte precision.
+
+**Week 7 status:**
+
+The implementation, targeted tests, local benchmark, and pre-commit checks were
+completed, and the pull request was submitted for maintainer review.
 
 ---
 
