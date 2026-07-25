@@ -1,12 +1,132 @@
 # su26-ai301-contribution
 
+# Contribution 3: Add Static Mapper Support to Mesh Plotting
+
+**Contribution Number:** 3  
+**Student:** Rishav Mishra  
+**GitHub Username:** tokito-99  
+**Issue:** https://github.com/pyvista/pyvista/issues/8769  
+**Pull Request:** https://github.com/pyvista/pyvista/pull/8842  
+**Status:** Week 8 Progress - Pull Request Submitted and Under Review  
+
+---
+
+## Week 8 Progress
+
+During Week 8, my second PyVista contribution was completed when pull request
+[pyvista/pyvista#8818](https://github.com/pyvista/pyvista/pull/8818) was merged
+into PyVista's `main` branch. That PR resolved
+[pyvista/pyvista#8770](https://github.com/pyvista/pyvista/issues/8770) by
+vectorizing `LookupTable.__call__` for array-like scalar inputs using VTK's bulk
+`MapScalars()` API.
+
+After completing that contribution, I began my third PyVista contribution. I
+studied [pyvista/pyvista#8769](https://github.com/pyvista/pyvista/issues/8769)
+in depth and opened [pyvista/pyvista#8842](https://github.com/pyvista/pyvista/pull/8842),
+which adds static mapper support to mesh plotting.
+
+The issue focuses on exposing VTK's mapper static mode for meshes whose input
+data is caller-controlled and does not change between renders. The motivation is
+that when only the camera moves, VTK mappers can still check and update the input
+pipeline each frame. For static mesh data, this can create unnecessary CPU-side
+pipeline work, especially when many actors are rendered.
+
+**What I studied before implementing PR #8842:**
+
+* How `Plotter.add_mesh()` constructs and configures mappers.
+* How `Plotter.add_composite()` handles composite and `MultiBlock` datasets.
+* How PyVista handles scalar mapping, Gaussian point rendering, vertex overlays,
+  silhouettes, and explicit dataset replacement.
+* Where static mode can safely be enabled without breaking dynamic or
+  camera-dependent rendering paths.
+
+**Implementation completed so far:**
+
+* Added and documented an opt-in `static: bool = False` keyword for
+  `Plotter.add_mesh()` and `Plotter.add_composite()`.
+* Ensured the final mapper input pipeline is initialized before enabling VTK's
+  static mode.
+* Forwarded static behavior through `MultiBlock`, composite, and vertex-overlay
+  rendering paths.
+* Kept camera-dependent silhouette helper mappers dynamic because their output
+  depends on the current camera state.
+* Refreshed static mapper pipelines after explicit dataset replacement so newly
+  connected data is updated once before static rendering resumes.
+* Added a public mapper-level `static` property after reviewer feedback so
+  PyVista code can use `mapper.static` instead of directly calling VTK methods.
+* Confirmed command-line plotting support for the requested syntax:
+
+```powershell
+pyvista plot <mesh-file> --static
+```
+
+**Testing performed for PR #8842:**
+
+```powershell
+python -m pytest tests/plotting/test_plotter.py -q -k static
+```
+
+Result:
+
+```text
+13 passed
+```
+
+Broader plotting test command:
+
+```powershell
+python -m pytest tests/plotting/test_plotter.py tests/plotting/mappers/test_mapper.py -q -k "not test_import_obj_with_filename_mtl"
+```
+
+Result:
+
+```text
+132 passed, 3 skipped, 1 deselected
+```
+
+Additional checks:
+
+```powershell
+python -m ruff check pyvista/plotting/mapper.py pyvista/plotting/plotter.py tests/plotting/test_plotter.py
+python -m ruff format --check pyvista/plotting/mapper.py pyvista/plotting/plotter.py tests/plotting/test_plotter.py
+git diff --check
+```
+
+**Week 8 status:**
+
+Contribution 2 is complete because PR #8818 was merged. Contribution 3 has been
+started and submitted through PR #8842. The static mapper PR is under review, and
+I have already addressed initial reviewer feedback related to CLI behavior,
+`versionadded` documentation, and adding a public mapper-level `static` property.
+
+---
+
 # Contribution 2: Vectorize `LookupTable.__call__` Array Mapping
 
 **Contribution Number:** 2  
 **Student:** Rishav Mishra  
 **GitHub Username:** tokito-99  
 **Issue:** https://github.com/pyvista/pyvista/issues/8770  
-**Status:** Week 7 Complete - Pull Request Submitted  
+**Status:** Week 8 Complete - Pull Request Merged  
+
+---
+
+## Week 8 Progress
+
+Pull request [pyvista/pyvista#8818](https://github.com/pyvista/pyvista/pull/8818)
+was merged into PyVista's `main` branch on July 22, 2026, completing this
+contribution. The merged PR resolved
+[pyvista/pyvista#8770](https://github.com/pyvista/pyvista/issues/8770) by
+replacing the array-input Python loop in `LookupTable.__call__` with VTK's bulk
+`MapScalars()` path.
+
+The final merged contribution preserved scalar-input behavior, preserved the
+existing public `TypeError` behavior for invalid input, converted VTK
+unsigned-char RGBA output back to PyVista's existing floating-point RGBA format,
+and added targeted tests for scalar input, list input, NumPy array input, output
+shape, and equivalence with `map_value()`.
+
+**Final status:** Merged into PyVista `main` through PR #8818.
 
 ---
 
@@ -648,3 +768,7 @@ For future implementation phases, I would also check for deprecated helper metho
 * https://github.com/pyvista/pyvista
 * https://github.com/pyvista/pyvista/blob/main/CONTRIBUTING.rst
 * https://github.com/tokito-99/pyvista/tree/feat/smooth-taubin-window-function
+* https://github.com/pyvista/pyvista/issues/8770
+* https://github.com/pyvista/pyvista/pull/8818
+* https://github.com/pyvista/pyvista/issues/8769
+* https://github.com/pyvista/pyvista/pull/8842
