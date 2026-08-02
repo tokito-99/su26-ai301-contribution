@@ -1,15 +1,28 @@
-# su26-ai301-contribution
+su26-ai301-contribution
 
-# Contribution 3: Add Static Mapper Support to Mesh Plotting
+Contribution 3: Add Static Mapper Support to Mesh Plotting
 
-**Contribution Number:** 3  
-**Student:** Rishav Mishra  
-**GitHub Username:** tokito-99  
-**Issue:** https://github.com/pyvista/pyvista/issues/8769  
-**Pull Request:** https://github.com/pyvista/pyvista/pull/8842  
-**Status:** Week 8 Progress - Pull Request Submitted and Under Review  
+Contribution Number: 3Student: Rishav MishraGitHub Username: tokito-99Issue: https://github.com/pyvista/pyvista/issues/8769Pull Request: https://github.com/pyvista/pyvista/pull/8842Status: Week 9 Progress - Pull Request Reviewed and Approved
 
----
+Week 9 Progress
+
+During Week 9, pull requestpyvista/pyvista#8842 completedmaintainer review and received an approval from reviewer @user27182, whomarked the changes as LGTM after the requested updates were addressed.
+
+Review feedback addressed:
+
+Updated both versionadded directives to 0.49.
+
+Added a public mapper-level static property and updated the plotting code touse mapper.static instead of directly calling the underlying VTK methods.
+
+Tested the requested command-line behavior for pyvista plot <mesh-file> --static.
+
+Confirmed that generic **kwargs did not automatically register a bare booleanflag with Cyclopts, so an explicit CLI boolean option and regression coveragewere added for the requested syntax.
+
+After approving the PR, the reviewer raised one additional design question aboutwhether --static is necessary in the command-line interface. The reviewer notedthat CLI plotting usually performs only a single render and may therefore alreadybe effectively static. I responded that keeping the option could still be usefulfor niche cases involving repeated renders because pyvista plot can remaininteractive.
+
+Week 9 status:
+
+PR #8842 has received an approving review and is currently open and mergeable,but it has not yet been merged. The latest discussion is focused on whether tokeep the --static CLI option for interactive or repeated-render use cases.
 
 ## Week 8 Progress
 
