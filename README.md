@@ -1,10 +1,40 @@
-su26-ai301-contribution
+# SU26 AI301 Contribution
 
-Contribution 3: Add Static Mapper Support to Mesh Plotting
+## Contribution 3: Add Static Mapper Support to Mesh Plotting
 
-Contribution Number: 3Student: Rishav MishraGitHub Username: tokito-99Issue: https://github.com/pyvista/pyvista/issues/8769Pull Request: https://github.com/pyvista/pyvista/pull/8842Status: Week 9 Progress - Pull Request Reviewed and Approved
+**Contribution Number:** 3  
+**Student:** Rishav Mishra  
+**GitHub Username:** tokito-99  
+**Issue:** [pyvista/pyvista#8769](https://github.com/pyvista/pyvista/issues/8769)  
+**Pull Request:** [pyvista/pyvista#8842](https://github.com/pyvista/pyvista/pull/8842)  
+**Status:** Week 10 Complete - Pull Request Merged  
 
-Week 9 Progress
+## Week 10 Progress
+
+Pull request [pyvista/pyvista#8842](https://github.com/pyvista/pyvista/pull/8842)
+was approved and merged into PyVista's `main` branch on August 6, 2026. The
+merge completed my third PyVista contribution and resolved
+[pyvista/pyvista#8769](https://github.com/pyvista/pyvista/issues/8769).
+
+The final contribution adds opt-in static mapper support to
+`Plotter.add_mesh()` and `Plotter.add_composite()`. It initializes the final
+mapper pipeline before enabling static mode, supports explicit dataset
+replacement, and keeps camera-dependent silhouette mappers dynamic. It also
+adds the public `mapper.static` property and test coverage for scalar mapping,
+Gaussian points, composites, `MultiBlock` data, vertex overlays, silhouettes,
+and dataset replacement.
+
+During the final review, we discussed whether the `--static` option should
+remain available through `pyvista plot`. I chose to keep the opt-in option for
+niche interactive command-line sessions that may render repeatedly. The
+reviewer approved the final implementation, and the PR was merged with merge
+commit `4ae0058cded95c88db8b18bd02a0d3d47a160742`.
+
+**Final status:** Merged into PyVista `main` through PR #8842.
+
+---
+
+## Week 9 Progress
 
 During Week 9, pull requestpyvista/pyvista#8842 completedmaintainer review and received an approval from reviewer @user27182, whomarked the changes as LGTM after the requested updates were addressed.
 
